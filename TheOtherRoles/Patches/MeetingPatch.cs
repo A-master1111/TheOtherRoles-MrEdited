@@ -472,6 +472,13 @@ namespace TheOtherRoles.Patches {
             if (Yasuna.yasuna != null && (Yasuna.yasuna.Data.IsDead || Yasuna.specialVoteTargetPlayerId != byte.MaxValue)) return;
             if (!(__instance.state == MeetingHud.VoteStates.Voted || __instance.state == MeetingHud.VoteStates.NotVoted || __instance.state == MeetingHud.VoteStates.Results)) return;
             if (__instance.playerStates[buttonTarget].AmDead) return;
+	    
+	    var yasunaPVA = __instance.playerStates.FirstOrDefault(t => t.TargetPlayerId == Yasuna.yasuna.PlayerId);
+            if (yasunaPVA != null && yasunaPVA.DidVote)
+            {
+                SoundEffectsManager.play("fail");
+                return;
+            }
 
             byte targetId = __instance.playerStates[buttonTarget].TargetPlayerId;
             RPCProcedure.yasunaSpecialVote(CachedPlayer.LocalPlayer.PlayerControl.PlayerId, targetId);
@@ -746,7 +753,7 @@ namespace TheOtherRoles.Patches {
         [HarmonyPatch(typeof(PlayerControl), nameof(PlayerControl.StartMeeting))]
         class StartMeetingPatch {
             public static bool Prefix(PlayerControl __instance, [HarmonyArgument(0)]GameData.PlayerInfo meetingTarget) {
-                // MOD’Ç‰Áˆ—
+                // MODè¿½åŠ å‡¦ç†
                 {
                     // Reset Bait list
                     Bait.active = new Dictionary<DeadPlayer, float>();
@@ -816,11 +823,11 @@ namespace TheOtherRoles.Patches {
                     SoundEffectsManager.stopAll();
                 }
 
-                // Šù‘¶ˆ—‚ÌˆÚA
+                // æ—¢å­˜å‡¦ç†ã®ç§»æ¤
                 {
                     bool flag = target == null;
                     DestroyableSingleton<Telemetry>.Instance.WriteMeetingStarted(flag);
-                    StartMeeting(__instance, target); // •ÏX•”•ª
+                    StartMeeting(__instance, target); // å¤‰æ›´éƒ¨åˆ†
                     if (__instance.AmOwner)
                     {
                         if (flag)
@@ -843,7 +850,7 @@ namespace TheOtherRoles.Patches {
 
             static IEnumerator CoStartMeeting(PlayerControl reporter, GameData.PlayerInfo target)
             {
-                // Šù‘¶ˆ—‚ÌˆÚA
+                // æ—¢å­˜å‡¦ç†ã®ç§»æ¤
                 {
                     while (!MeetingHud.Instance)
                     {
@@ -867,19 +874,19 @@ namespace TheOtherRoles.Patches {
                     KillAnimation.SetMovement(reporter, true);
                 }
 
-                // ’x‰„ˆ—’Ç‰Á‚»‚Ì‚Ü‚Üyield return‚Å‘Ò‚¿‚ğ“ü‚ê‚é‚ÆƒƒbƒN‚µ‚½‚Ì‚ÅHudManager‚ÌƒRƒ‹[ƒ`ƒ“‚Æ‚µ‚ÄÀs‚³‚¹‚é
+                // é…å»¶å‡¦ç†è¿½åŠ ãã®ã¾ã¾yield returnã§å¾…ã¡ã‚’å…¥ã‚Œã‚‹ã¨ãƒ­ãƒƒã‚¯ã—ãŸã®ã§HudManagerã®ã‚³ãƒ«ãƒ¼ãƒãƒ³ã¨ã—ã¦å®Ÿè¡Œã•ã›ã‚‹
                 DestroyableSingleton<HudManager>._instance.StartCoroutine(CoStartMeeting2(reporter, target).WrapToIl2Cpp());
                 yield break;
             }
 
             static IEnumerator CoStartMeeting2(PlayerControl reporter, GameData.PlayerInfo target)
             {
-                // Mod‚Å’Ç‰Á‚·‚é’x‰„ˆ—
+                // Modã§è¿½åŠ ã™ã‚‹é…å»¶å‡¦ç†
                 SpriteRenderer blackscreen = null;
                 {
-                    // ƒ{ƒ^ƒ“‚Æ“¯‚É’Ê•ñ‚ª“ü‚Á‚½ê‡‚ÌƒoƒO‘Î‰A‘¼‚ÌƒNƒ‰ƒCƒAƒ“ƒg‚©‚çƒLƒ‹ƒCƒxƒ“ƒg‚ª”ò‚ñ‚Å‚­‚é‚Ì‚ğ‘Ò‚Â
-                    // Œ©‚¦‚Ä‚Ís‚¯‚È‚¢‚à‚Ì‚ªŒ©‚¦‚é‚Ì‚ÅˆÃ“]‚³‚¹‚é
-                    MeetingHud.Instance.state = MeetingHud.VoteStates.Animating; //ƒQƒbƒT[‚ÌƒLƒ‹—pmeetingupdate‚ªŒÄ‚Î‚ê‚È‚¢‚æ‚¤‚É‚·‚é‚¨‚Ü‚¶‚È‚¢iŒÄ‚Î‚ê‚é‚ÆƒoƒO‚éj
+                    // ãƒœã‚¿ãƒ³ã¨åŒæ™‚ã«é€šå ±ãŒå…¥ã£ãŸå ´åˆã®ãƒã‚°å¯¾å¿œã€ä»–ã®ã‚¯ãƒ©ã‚¤ã‚¢ãƒ³ãƒˆã‹ã‚‰ã‚­ãƒ«ã‚¤ãƒ™ãƒ³ãƒˆãŒé£›ã‚“ã§ãã‚‹ã®ã‚’å¾…ã¤
+                    // è¦‹ãˆã¦ã¯è¡Œã‘ãªã„ã‚‚ã®ãŒè¦‹ãˆã‚‹ã®ã§æš—è»¢ã•ã›ã‚‹
+                    MeetingHud.Instance.state = MeetingHud.VoteStates.Animating; //ã‚²ãƒƒã‚µãƒ¼ã®ã‚­ãƒ«ç”¨meetingupdateãŒå‘¼ã°ã‚Œãªã„ã‚ˆã†ã«ã™ã‚‹ãŠã¾ã˜ãªã„ï¼ˆå‘¼ã°ã‚Œã‚‹ã¨ãƒã‚°ã‚‹ï¼‰
                     HudManager hudManager = DestroyableSingleton<HudManager>.Instance;
                     blackscreen = UnityEngine.Object.Instantiate(hudManager.FullScreen, hudManager.transform);
                     var greyscreen = UnityEngine.Object.Instantiate(hudManager.FullScreen, hudManager.transform);
@@ -930,12 +937,12 @@ namespace TheOtherRoles.Patches {
                     //UnityEngine.Object.Destroy(blackscreen);
                     //UnityEngine.Object.Destroy(greyscreen);
 
-                    // ƒ~[ƒeƒBƒ“ƒO‰æ–Ê‚Ì•À‚Ñ‘Ö‚¦‚ğ’¼‚·
+                    // ãƒŸãƒ¼ãƒ†ã‚£ãƒ³ã‚°ç”»é¢ã®ä¸¦ã³æ›¿ãˆã‚’ç›´ã™
                     //populateButtons(MeetingHud.Instance, reporter.Data.PlayerId);
                     populateButtonsPostfix(MeetingHud.Instance);
                 }
 
-                // Šù‘¶ˆ—‚ÌˆÚA
+                // æ—¢å­˜å‡¦ç†ã®ç§»æ¤
                 {
                     DeadBody[] array = UnityEngine.Object.FindObjectsOfType<DeadBody>();
                     GameData.PlayerInfo[] deadBodies = (from b in array
@@ -996,8 +1003,8 @@ namespace TheOtherRoles.Patches {
 
         public static void populateButtons(MeetingHud __instance, byte reporter)
         {
-            // ‰ï‹c‚ÉQ‰Á‚µ‚È‚¢PlayerControl‚ğ‚ÂRole‚ª‘‚¦‚½‚ç‚±‚ÌList‚É’Ç‰Á
-            // “Áê‚ÈplayerInfo.Role.Role‚ğİ’è‚·‚é‚±‚Æ‚Å©“®“I‚É–³‹‚Å‚«‚È‚¢‚©H‚à‚µ‚­‚Íƒtƒ‰ƒO‚ğplayerInfo‚Ì‚Ç‚±‚©‚É’Ç‰Á
+            // ä¼šè­°ã«å‚åŠ ã—ãªã„PlayerControlã‚’æŒã¤RoleãŒå¢—ãˆãŸã‚‰ã“ã®Listã«è¿½åŠ 
+            // ç‰¹æ®ŠãªplayerInfo.Role.Roleã‚’è¨­å®šã™ã‚‹ã“ã¨ã§è‡ªå‹•çš„ã«ç„¡è¦–ã§ããªã„ã‹ï¼Ÿã‚‚ã—ãã¯ãƒ•ãƒ©ã‚°ã‚’playerInfoã®ã©ã“ã‹ã«è¿½åŠ 
             var playerControlesToBeIgnored = new List<PlayerControl>() {};
             playerControlesToBeIgnored.RemoveAll(x => x == null);
             var playerIdsToBeIgnored = playerControlesToBeIgnored.Select(x => x.PlayerId);
