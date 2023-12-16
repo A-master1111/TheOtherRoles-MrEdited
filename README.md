@@ -1,5 +1,6 @@
 # The Other Roles: MR Edited
 本模组为MR续作MR Edited
+本模组已断更，再见了各位
 
 # Releases
 |MR Edited模组版本 | AU版本 | 下载 |
